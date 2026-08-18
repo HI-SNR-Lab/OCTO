@@ -32,3 +32,14 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# OCTO research capture output
+*.dng
+*.raw
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*~
