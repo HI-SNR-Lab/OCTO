@@ -136,15 +136,15 @@ fun MainScreen() {
 
             Text(
                 text = """
-            ISO: ${currentMetadata?.iso ?: "—"}
-            Exposure: ${currentMetadata?.exposureTime ?: "—"} ns
-            Timestamp: ${currentMetadata?.sensorTimestamp ?: "—"}
-            Focus distance: ${currentMetadata?.focusDistance ?: "—"}
-            AF state: ${currentMetadata?.afState ?: "—"}
-            AE state: ${currentMetadata?.aeState ?: "—"}
-            AWB state: ${currentMetadata?.awbState ?: "—"}
-            Rolling shutter: ${currentMetadata?.rollingShutterSkew ?: "—"} ns
-        """.trimIndent(),
+        ISO: ${currentMetadata?.iso ?: "—"}
+        Exposure: ${currentMetadata?.exposureTime ?: "—"} ns
+        Timestamp: ${currentMetadata?.sensorTimestamp ?: "—"} ns
+        Focus distance: ${currentMetadata?.focusDistance ?: "—"} diopters
+        AF state: ${currentMetadata?.afState ?: "—"}
+        AE state: ${currentMetadata?.aeState ?: "—"}
+        AWB state: ${currentMetadata?.awbState ?: "—"}
+        Rolling shutter: ${currentMetadata?.rollingShutterSkew ?: "—"} ns
+    """.trimIndent(),
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(16.dp)
@@ -164,7 +164,7 @@ fun MainScreen() {
                     onClick = {
                         Log.d("RAW_SAVE", "Save RAW button clicked")
                         Log.d("RAW_SAVE", "cameraController null? ${cameraController == null}")
-                        cameraController?.saveRaw("test")
+                        cameraController?.saveRaw("")
                     }
                 ) {
                     Text("Capture")
@@ -328,13 +328,13 @@ fun validateForCamera(context: Context): String {
 
         //Compile all info for this camera into the result
         result += "Camera ID: $cameraId \n"
-        result += "RAW: $supportsRaw\n"
+        result += "Supports RAW: $supportsRaw\n"
         result += "RAW sensor output resolution: ${rawSizes?.joinToString()}\n"
-        result += "Manual sensor: $supportsManualSensor\n"
-        result += "Read sensor settings: $supportsReadSensorSettings\n"
+        result += "Supports manual manipulation: $supportsManualSensor\n"
+        result += "Supports reading sensor settings: $supportsReadSensorSettings\n"
         result += "Bayer pattern: $cfaText\n"
-        result += "Exposure range: $exposureRange\n"
-        result += "Exposure step: $exposureStep\n"
+        result += "Auto-exposure compensation range: $exposureRange\n"
+        result += "Auto-exposure compensation step: $exposureStep\n"
 
         if (facingText != "Unknown") {
             result += "Camera facing: $facingText "
