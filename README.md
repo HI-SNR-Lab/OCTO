@@ -1,10 +1,27 @@
 # OCTO
-
 Open Camera Testbench and Orchestrator
 
-## Welcome to OCTO
-
+## Welcome to OCTO! 🐙
 OCTO is a computational imaging platform that grants a user more advanced access to all available cameras on an Android system. It exposes data that is typically obscured by stock camera apps, allows for RAW image capture, and allows for custom camera macros/scripts to be executed.
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="images/OCTO_index_preview%5B1%5D.jpg" width="240">
+      <br>
+      <sub>Camera indexing and capability display</sub>
+    </td>
+    <td align="center">
+      <img src="images/OCTO_in_app_preview%5B1%5D.jpg" width="240">
+      <br>
+      <sub>Live camera preview and real-time metadata</sub>
+    </td>
+  </tr>
+</table>
+
+</div>
 
 # NOTE
 
@@ -25,9 +42,13 @@ OCTO is currently a **research prototype**. The system has been built to provide
 3. Open the project folder in Android Studio. The program files with all the OCTO code (MainActivity.kt, CameraPreview.kt, CameraMethods.kt, and WriteImagingScriptHere.kt) all live in app/src/main/java/com/example/hi_snr_computational_imaging
 4. [Ensure that developer mode is enabled on your Android phone](https://developer.android.com/studio/debug/dev-options)
 5. Connect your Android device over USB. Allow all connection prompts that the phone and your computer may give you.
-6. Android Studio should automatically recognize your device over USB. It will appear in the top bar. If it fails to appear, try No Devices > Rescan. You may need to troubleshoot further if this doesn't fix it.
+7. Android Studio should automatically recognize your device over USB. It will appear in the top bar. If it fails to appear, try No Devices > Rescan. You may need to troubleshoot further if this doesn't fix it.
+9. Press the green "Run 'app'" flag to build the program and send it to your phone via APK.
+<div align="center">
+  <img src="images/Android_device_connected.png" width="600">
+</div>
 
-7. Press the green "Run 'app'" flag to build the program and send it to your phone via APK.
+
 
 ## Quick start
 1. Update WriteImagingScriptHere.kt with a custom camera script
@@ -39,7 +60,7 @@ OCTO is currently a **research prototype**. The system has been built to provide
 
 
 ## App flow
-
+[Watch a video demonstration of OCTO here](https://youtube.com/shorts/XyCGkq8VP7E)
 1. Permissions:
 The user is presented with a "Request Camera Permission" button. This checks whether or not the app has been granted system camera access. If it has, indexing begins immediately and all cameras and characteristics are displayed. If it hasn't the user is prompted to allow OCTO camera permissions. 
 
@@ -54,7 +75,7 @@ Opening any camera causes a live feed of camera frames to be sent to the app. Me
 
 ## File structure breakdown
 
-OCTO currently has four core files, which all live within app/src/main/java/com/example/hi_snr_computational_imaging
+OCTO currently has four core files, which all live within [`app/src/main/java/com/example/hi_snr_computational_imaging`](app/src/main/java/com/example/hi_snr_computational_imaging)
 
 1. **MainActivity.kt**:
 
