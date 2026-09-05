@@ -87,7 +87,7 @@ A framework heavy file that handles Kotlin setup to request live camera frames a
 
 3. **CameraMethods.kt**:
 
-General manipulation of the camera is performed here. Functions for things like manually specifying exposure, capturing a RAW image, and setting an ISO value can be performed here. Private helpers also exist to do things like disable or enable autofocus. This is effectively a library, providing all the useful camera functions that can be strung together to create imaging scripts. (Note: see Output for image capturing specifics)
+General manipulation of the camera is performed here. Functions for things like manually specifying exposure, capturing a RAW image, and setting an ISO value can be performed here. Private helpers also exist to do things like disable or enable autofocus. This is effectively a library, providing all the useful camera functions that can be strung together to create imaging scripts. (Note: see Output for image capturing specifics. Also, see Focal sweep for more information on this method, as it is a bit more complex)
 
 4. **WriteImagingScriptHere.kt**:
 
@@ -130,7 +130,7 @@ MainActivity.kt exposes all local cameras by hardware IDs, and lists some of the
 - Auto-exposure compensation step: How much brightness change each one-step compensation value represents.
 - Camera facing: the physical orientation of the camera on the phone (front or back)
 
-**IMPORTANT!** Available characteristics are hardware-dependent, and not every characteristic is supported by every device. Many more characteristics are available through characteristics.get, found at the bottom of MainActivity.kt. Android has a [complete list of all camera characteristics in their API documentation.](https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraCharacteristics)
+**IMPORTANT!** Available characteristics are hardware-dependent, and not every characteristic is supported by every device. Many more characteristics are available through characteristics.get, found at the bottom of MainActivity.kt. Android has a [complete list of all camera characteristics in their API documentation.](https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraCharacteristics)<br><br><br><br><br>
 
 
 **Real-time Metrics**:
@@ -152,8 +152,67 @@ IMPORTANT! Like camera characteristics, the availability of some capture-result 
 ```
 result.get(CaptureResult.SOME_CHARACTERISTIC)
 ```
-at the bottom of the file. 
+at the bottom of the file.<br><br><br><br><br>
 
+**Focal Sweep**:
+The focal sweep method lives in CameraMethods.kt and is callable from WriteImagingScriptHere.kt using
+```
+camera2Controller.startFocalSweep(
+        1.0f,   //focus step in diopters. starts at 0 diopters and increases for after every capture request.
+        300     //delay between focus change and capture, in ms
+    )
+```
+The implementation of the method is somewhat involved. Because the focal sweep needs to repeatedly wait for the user's requested delay (allowing the camera to settle), the sweep runs inside a Kotlin coroutine. This allows delay() to suspend the sweep without blocking the app’s main thread.
+
+The first method, startFocalSweep() is what is called from WriteImagingScriptHere.kt. It simply starts a Kotlin coroutine and requests the actual execution of the focal sweep.
+```
+    fun startFocalSweep(stepDiopters: Float, delayMS: Long) {
+        //first, simply check if there is already a focalSweep active. reject the request if so. 
+        if (focalSweepJob?.isActive == true) {
+            Log.w("FOCUS_SWEEP", "Focal sweep already running.")
+            return
+        }
+
+        //if no focal sweep is currently active, begin a Coroutine and request a focal sweep using the provided step and delay
+        focalSweepJob = CoroutineScope(Dispatchers.Main).launch {
+            focalSweep(stepDiopters, delayMS)
+        }
+    }
+```
+
+
+The second method, focalSweep(), is a ```suspend fun```, meaning it can pause at suspending operations such as delay() and later resume execution within the coroutine. It is too long to cleanly paste here, but a shortened/pseudo representation of the function would be: 
+```
+   suspend fun focalSweep(stepDiopters: Float, delayMS: Long){
+        var currentFocusDiopters = 0.0f
+        val sweepStartMs = SystemClock.elapsedRealtime()
+
+        //validate that distances are ok for sweep
+        if (maxFocusDiopters == null || maxFocusDiopters == 0.0f || stepDiopters <= 0.0f) {
+            return
+        }
+
+        //perform sweep
+        while(currentFocusDiopters < maxFocusDiopters){
+            setFocusDistance(currentFocusDiopters)
+
+            //specified delay - NOTE: THIS ALLOWS THE LENS TO SETTLE
+            delay(delayMS)
+
+            //save the output image using elapsed sweep time and focus distance in the filename
+            val elapsedMs = SystemClock.elapsedRealtime() - sweepStartMs
+            val focusLabel = "%.2f".format(currentFocusDiopters)
+            saveRaw("${elapsedMs}ms_focus_${focusLabel}D")
+
+            //log the RAW capture request
+            Log.d("RAW_Requested", "RAW requested at ${currentFocusDiopters} diopters")
+            currentFocusDiopters += stepDiopters
+    }
+}
+```
+ The RAW images captured by the method are found in the same folder as standard captures, detailed in the following Output section. Currently, output images are given a default name of the format of something like:
+```1000ms_focus_1.00D.dng```
+Meaning the image was taken at 1000 ms after execution of the sweep at a focus distance of 1 diopter.<br><br><br><br><br>
 
 **Output**:
 At the moment, OCTO only supports capturing RAW/DNG images using saveRaw(customName). All captured images live in the app's external files directory. On the dev device, the specific path is,
@@ -161,7 +220,7 @@ At the moment, OCTO only supports capturing RAW/DNG images using saveRaw(customN
 Internal-storage/Android/data/com.example.hi_snr_computational_imaging/files
 ```
 and should be similar on other Android devices.
-To create a DNG, OCTO requires two things for the internal dngCreator: the actual pixel data that will comprise the image, and the associated metadata for encoding. These things do not necessarily always arrive at the same time, meaning that there can be desync with the saving of images. Currently, OCTO simply tries to save when either arrives, and exits gracefully if the other isn't present. Additional RAW requests are ignored until the current image and capture metadata have been received and written.
+To create a DNG, OCTO requires two things for the internal dngCreator: the actual pixel data that will comprise the image, and the associated metadata for encoding. These things do not necessarily always arrive at the same time, meaning that there can be desync with the saving of images. Currently, OCTO simply tries to save when either arrives, and exits gracefully if the other isn't present. Additional RAW requests are ignored until the current image and capture metadata have been received and written.<br><br><br><br><br>
 
 
 ## Units and Displayed Values
